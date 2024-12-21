@@ -1,5 +1,5 @@
 #pragma once
-#include "cachedECS.h"
+#include "entityComponentManager.h"
 #include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -53,5 +53,22 @@ namespace components {
         }
     };
 
- 
+    struct windowSettingsComponent  {
+        std::string windowIdentifier = "defaultIdentifier";
+        const char* windowTitle = "defaultWindowTitle";
+        float windowHeight = 600;
+        float windowWidth = 800;
+    };
+
+    struct projectionComponent {
+        glm::mat4 view;
+        glm::mat4 projection;
+        
+    };
+
+    struct deltaTimeComponent {
+        float deltaTime = 0.0f;
+        float lastFrameTime = 0.0f;
+    };
+
 }//component namespace

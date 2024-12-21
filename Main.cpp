@@ -1,5 +1,27 @@
-#include "initializations.h"
-//hello
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+
+#include "cameraManager.h"
+#include "entityComponentManager.h"
+#include "shaderManager.h"
+#include "textureManager.h"
+#include "eventManager.h"
+#include "windowManager.h"
+
+#include "renderingSystem.h"
+#include "timeSystem.h"
+
+#include "glfwInput.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -7,26 +29,32 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 void close_window(GLFWwindow* window);
 
+glm::mat4 view;
+glm::mat4 projection;
+
 int main() {
+    ECS::EntityComponent ecs;
 
+    WindowManager windowManager;
+    int windowEntity = ecs.createEntity();
+    ecs.addComponent(windowEntity, components::windowSettingsComponent{});
 
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    windowManager.createWindow(ecs, windowEntity);
+    auto* windowData = ecs.getComponent<components::windowSettingsComponent>(windowEntity);
+    auto window = windowManager.getWindowByIdentifier(windowData->windowIdentifier);
 
-    // glfw window creation
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Me After My Code Works", NULL, NULL);
-    if (window == NULL)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    CameraManager cameraManager(ecs, windowEntity);
+    cameraManager.setMouseCallback(window);
+
+    int cameraEntity = ecs.createEntity();
+    ecs.addComponent(cameraEntity, components::CameraComponent{});
+
+    auto view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -10.0f));
+    auto projection = glm::perspective(glm::radians(45.0f), (float)windowData->windowWidth / (float)windowData->windowHeight, 0.1f, 100.0f);
+
+    // Register the camera with the manager
+    cameraManager.addCamera(cameraEntity, "mainCamera");
+    cameraManager.setActiveCamera("mainCamera");
 
     // glad: load all OpenGL function pointers
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -35,13 +63,7 @@ int main() {
         return -1;
     }
 
-    // Initialize ImGUI
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
+
 
     glEnable(GL_DEPTH_TEST);
 
@@ -54,138 +76,104 @@ int main() {
     TextureManager textureManager;
     textureManager.loadTexture("joke", "Creeper.png");
 
-    ECS::EntityComponent ecs;
+    Cube cube;
 
     // Create an entity and add components
     auto entity1 = ecs.createEntity();
-
-    // Add position, color, texture coordinate, and texture components to the entity
-    ecs.addComponent(entity1, components::VertexComponent{
-        {
-            // Positions          // Colors            // Texture Coords
-     // Front face
-     -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
-      0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,   1.0f, 0.0f,  // Bottom-right
-      0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,   1.0f, 1.0f,  // Top-right
-     -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top-left
-
-     // Back face
-     -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,   0.0f, 0.0f,  // Bottom-left
-      0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
-      0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,  // Top-right
-     -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,   0.0f, 1.0f,  // Top-left
-
-     // Left face
-     -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,   1.0f, 0.0f,  // Top-right
-     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-left
-     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Bottom-left
-     -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-right
-
-     // Right face
-      0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,   1.0f, 0.0f,  // Top-left
-      0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
-      0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,   0.0f, 1.0f,  // Bottom-right
-      0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
-
-      // Top face
-      -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,   0.0f, 1.0f,  // Top-left
-       0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-right
-       0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-right
-      -0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f,   0.0f, 0.0f,  // Bottom-left
-
-      // Bottom face
-      -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,   0.0f, 1.0f,  // Top-right
-       0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,   1.0f, 1.0f,  // Top-left
-       0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,   1.0f, 0.0f,  // Bottom-left
-      -0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f,   0.0f, 0.0f   // Bottom-right
-        }
-        });
-    ecs.addComponent(entity1, components::IndexComponent{
-        { // Front face
-    0, 1, 2,
-    2, 3, 0,
-
-    // Back face
-    4, 5, 6,
-    6, 7, 4,
-
-    // Left face
-    8, 9, 10,
-    10, 11, 8,
-
-    // Right face
-    12, 13, 14,
-    14, 15, 12,
-
-    // Top face
-    16, 17, 18,
-    18, 19, 16,
-
-    // Bottom face
-    20, 21, 22,
-    22, 23, 20}
-        });
-
-    ecs.addComponent(entity1, components::TextureComponent{ textureManager.getTexture("joke"), "joke" });
-    ecs.addComponent(entity1, components::ShaderComponent{ "default" });
-    ecs.addComponent(entity1, components::ModelMatrixComponent{});
-
     
+    assignShapeToEntity(entity1, ecs, cube.vertices, cube.indicies);
+
+    int timeEntity = ecs.createEntity();
+    ecs.addComponent(timeEntity, components::deltaTimeComponent{});
 
     auto* modelMatrix = ecs.getComponent<components::ModelMatrixComponent>(entity1);
 
     EventBus eventBus;
 
     eventBus.listenForEvent("close_window", std::bind(close_window, window));
+    eventBus.listenForEvent("move_forward", std::bind(moveForward, ecs, cameraManager, timeEntity));
+    eventBus.listenForEvent("move_left", std::bind(moveLeft, ecs, cameraManager, timeEntity));
+    eventBus.listenForEvent("move_backward", std::bind(moveBackward, ecs, cameraManager, timeEntity));
+    eventBus.listenForEvent("move_right", std::bind(moveRight, ecs, cameraManager, timeEntity));
+    eventBus.listenForEvent("enable_mouse", [window, &cameraManager]() {
+        cameraManager.enableMouseInput(window, cameraManager);
+        });
+
+    eventBus.listenForEvent("disable_mouse", [window, &cameraManager]() {
+        cameraManager.disableMouseInput(window, cameraManager);
+        });
+
+
 
     TriggerManager triggerManager;
 
     triggerManager.addTrigger("key_escape_pressed", std::bind(key_pressed, window, GLFW_KEY_ESCAPE));
     triggerManager.addEventToTrigger("key_escape_pressed", "close_window");
 
-    while (!glfwWindowShouldClose(window)) {
+    triggerManager.addTrigger("key_w_pressed", std::bind(key_pressed, window, GLFW_KEY_W));
+    triggerManager.addTrigger("key_a_pressed", std::bind(key_pressed, window, GLFW_KEY_A));
+    triggerManager.addTrigger("key_s_pressed", std::bind(key_pressed, window, GLFW_KEY_S));
+    triggerManager.addTrigger("key_d_pressed", std::bind(key_pressed, window, GLFW_KEY_D));
+    triggerManager.addTrigger("key_1_pressed", std::bind(key_pressed, window, GLFW_KEY_1));
+    triggerManager.addTrigger("key_2_pressed", std::bind(key_pressed, window, GLFW_KEY_2));
+
+    triggerManager.addEventToTrigger("key_w_pressed", "move_forward");
+    triggerManager.addEventToTrigger("key_a_pressed", "move_left");
+    triggerManager.addEventToTrigger("key_s_pressed", "move_backward");
+    triggerManager.addEventToTrigger("key_d_pressed", "move_right");
+    triggerManager.addEventToTrigger("key_1_pressed", "enable_mouse");
+    triggerManager.addEventToTrigger("key_2_pressed", "disable_mouse");
+
+    auto* deltaTimeComponent = ecs.getComponent<components::deltaTimeComponent>(timeEntity);
+
+    triggerManager.checkAndTriggerEvents(eventBus);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    cameraManager.enableMouseInput(window, cameraManager);
+
+    while (!glfwWindowShouldClose(window))
+    {
+        // Update the delta time for smooth frame-independent movement
+        updateDeltaTime(ecs, timeEntity);
+
+        // Retrieve the updated delta time from the component
+        float deltaTime = deltaTimeComponent->deltaTime;
+
+        // Check and trigger any queued events
         triggerManager.checkAndTriggerEvents(eventBus);
 
-        // Start ImGui frame
+        // Update the view matrix based on the currently active camera
+        updateViewMatrix(ecs, cameraManager, view);
+
+        // Clear the screen buffers: set background color and clear color and depth buffer
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Start a new ImGui frame
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // Render ImGui interface
-        ImGui::Begin("Create a Cube");
+        // Create an ImGui window with a button
+        ImGui::Begin("Button Window");
 
-        const char* items[] = { "Item 1", "Item 2", "Item 3" };
-        static int item_current = 0;
-        if (ImGui::BeginCombo("Dropdown", items[item_current])) {
-            for (int n = 0; n < IM_ARRAYSIZE(items); n++) {
-                const bool is_selected = (item_current == n);
-                if (ImGui::Selectable(items[n], is_selected)) {
-                    item_current = n;
-                }
-                if (is_selected) {
-                    ImGui::SetItemDefaultFocus();
-                }
-            }
-            ImGui::EndCombo();
+        // Button that adds a new cube when clicked
+        if (ImGui::Button("Add New Cube"))
+        {
+            std::cout << "Button was clicked!" << std::endl;
         }
 
+        // End ImGui window
         ImGui::End();
+
+        // Render the ImGui frame
         ImGui::Render();
-
-        // Clear buffers
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        //update camera
-
-
-        // Render entities
-        renderEntities(ecs, shaderManager, textureManager);
-
-        // Render ImGui data
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // Swap buffers and poll events
+        // Render ECS entities using the shader and texture managers
+        renderEntities(ecs, shaderManager, textureManager, view, projection);
+
+        // Swap front and back buffers and poll for input events
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

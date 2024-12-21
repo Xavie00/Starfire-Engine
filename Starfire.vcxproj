@@ -155,7 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="cachedECS.cpp" />
+    <ClCompile Include="entityComponentManager.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
@@ -167,10 +167,11 @@
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cachedECS.h" />
+    <ClInclude Include="entityComponentManager.h" />
     <ClInclude Include="cameraManager.h" />
     <ClInclude Include="components.h" />
     <ClInclude Include="eventManager.h" />
+    <ClInclude Include="gameManager.h" />
     <ClInclude Include="glfwInput.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
@@ -181,13 +182,13 @@
     <ClInclude Include="imgui\imstb_rectpack.h" />
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
-    <ClInclude Include="initializations.h" />
+    <ClInclude Include="windowManager.h" />
+    <ClInclude Include="modelManager.h" />
     <ClInclude Include="renderingSystem.h" />
-    <ClInclude Include="shader.h" />
     <ClInclude Include="shaderManager.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="textureManager.h" />
-    <ClInclude Include="window.h" />
+    <ClInclude Include="timeSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fragmentShader.glsl" />

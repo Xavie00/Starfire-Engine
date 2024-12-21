@@ -39,7 +39,7 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cachedECS.cpp">
+    <ClCompile Include="entityComponentManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="imgui\imgui.cpp">
@@ -95,7 +95,7 @@
     <ClInclude Include="textureManager.h">
       <Filter>Header Files\managers</Filter>
     </ClInclude>
-    <ClInclude Include="cachedECS.h">
+    <ClInclude Include="entityComponentManager.h">
       <Filter>Header Files\managers</Filter>
     </ClInclude>
     <ClInclude Include="eventManager.h">
@@ -110,22 +110,25 @@
     <ClInclude Include="shaderManager.h">
       <Filter>Header Files\managers</Filter>
     </ClInclude>
-    <ClInclude Include="shader.h">
-      <Filter>Header Files\managers</Filter>
-    </ClInclude>
     <ClInclude Include="stb_image.h">
       <Filter>Header Files\other</Filter>
-    </ClInclude>
-    <ClInclude Include="window.h">
-      <Filter>Header Files\other</Filter>
-    </ClInclude>
-    <ClInclude Include="glfwInput.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cameraManager.h">
       <Filter>Header Files\managers</Filter>
     </ClInclude>
-    <ClInclude Include="initializations.h">
+    <ClInclude Include="windowManager.h">
+      <Filter>Header Files\managers</Filter>
+    </ClInclude>
+    <ClInclude Include="timeSystem.h">
+      <Filter>Header Files\systems</Filter>
+    </ClInclude>
+    <ClInclude Include="modelManager.h">
+      <Filter>Header Files\managers</Filter>
+    </ClInclude>
+    <ClInclude Include="glfwInput.h">
+      <Filter>Header Files\other</Filter>
+    </ClInclude>
+    <ClInclude Include="gameManager.h">
       <Filter>Header Files\managers</Filter>
     </ClInclude>
   </ItemGroup>
