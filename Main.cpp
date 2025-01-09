@@ -74,7 +74,7 @@ int main() {
 
 
     TextureManager textureManager;
-    textureManager.loadTexture("joke", "Creeper.png");
+    textureManager.loadTexture("sky", "StarryNightTexture.jpg");
 
     Cube cube;
 
